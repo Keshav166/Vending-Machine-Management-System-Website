@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venda | Component-Based UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- 1. DESIGN TOKENS (Variables) --- */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --accent: #10b981;
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --radius-xl: 32px;
+            --radius-md: 16px;
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            --transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- 2. BASE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, var(--bg-dark) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* --- 3. REUSABLE UI COMPONENTS --- */
+
+        /* A. The "Glass" Container */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 30px;
+        }
+
+        /* B. The Modern Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 28px;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 15px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white;
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5);
+        }
+        .btn-icon { width: 40px; height: 40px; padding: 0; border-radius: 50%; background: rgba(255,255,255,0.1); color: white; }
+
+        /* C. The Product Card */
+        .product-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            padding: 25px;
+            text-align: left;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .product-card:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            transform: translateY(-10px);
+        }
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+            display: block;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+        }
+
+        /* D. Progress Bar */
+        .loader-track {
+            width: 100%; height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px; overflow: hidden;
+            margin: 20px 0;
+        }
+        .loader-fill { width: 0%; height: 100%; background: var(--primary); transition: 0.2s; }
+
+        /* --- 4. LAYOUT --- */
+        nav { padding: 30px 8%; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 26px; font-weight: 800; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .main-layout {
+            max-width: 1300px;
+            margin: 20px auto 100px;
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 40px;
+            padding: 0 5%;
+        }
+
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+
+        /* --- 5. OVERLAYS & MODALS --- */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .floating { animation: float 3s ease-in-out infinite; }
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">VENDA</div>
+    <div class="btn btn-outline" style="border: 1px solid var(--glass-border); color: var(--text-dim); padding: 10px 20px;">
+        Balance: ₹250.00
+    </div>
+</nav>
+
+<div class="main-layout">
+    <section>
+        <h1 style="font-size: 40px; margin-bottom: 30px;">Choose Refreshment</h1>
+        <div class="product-grid" id="product-grid"></div>
+    </section>
+
+    <aside class="glass-panel" style="height: fit-content; position: sticky; top: 30px;">
+        <h2 style="margin-bottom: 20px;">Your Selection</h2>
+        <div id="cart-content">
+            <p style="color: var(--text-dim); text-align: center; padding: 40px 0;">No items selected yet.</p>
+        </div>
+        
+        <div id="summary-area" style="display: none; border-top: 1px solid var(--glass-border); margin-top: 20px; padding-top: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 25px;">
+                <span style="font-size: 18px;">Total</span>
+                <span id="grand-total" style="font-size: 24px; font-weight: 800; color: var(--primary);">₹0</span>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" onclick="openPayment()">Purchase Now</button>
+        </div>
+    </aside>
+</div>
+
+<div class="overlay" id="overlay">
+    <div class="glass-panel" id="modal" style="width: 400px; text-align: center;"></div>
+</div>
+
+<script>
+    // --- 6. APP LOGIC ---
+    const drinks = [
+        { name: "Neon Lime", price: 40, icon: "🍋", tag: "Sour & Fizzy" },
+        { name: "Midnight Cola", price: 50, icon: "🥤", tag: "Classic Dark" },
+        { name: "Solar Orange", price: 45, icon: "🍊", tag: "Natural Pulp" },
+        { name: "Aqua Pure", price: 20, icon: "💧", tag: "Hydration" }
+    ];
+
+    let cart = null;
+
+    function renderProducts() {
+        const grid = document.getElementById('product-grid');
+        drinks.forEach(d => {
+            const el = document.createElement('div');
+            el.className = 'product-card';
+            el.onclick = () => selectDrink(d);
+            el.innerHTML = `
+                <span class="card-icon floating">${d.icon}</span>
+                <h3 style="margin-bottom: 5px;">${d.name}</h3>
+                <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 15px;">${d.tag}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 800; font-size: 20px;">₹${d.price}</span>
+                    <button class="btn btn-icon">+</button>
+                </div>
+            `;
+            grid.appendChild(el);
+        });
+    }
+
+    function selectDrink(drink) {
+        cart = { ...drink, qty: 1 };
+        const content = document.getElementById('cart-content');
+        const summary = document.getElementById('summary-area');
+        
+        content.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 15px; border-radius: var(--radius-md);">
+                <span style="font-size: 24px;">${cart.icon}</span>
+                <div style="flex-grow: 1; margin-left: 15px;">
+                    <strong>${cart.name}</strong><br>
+                    <small style="color: var(--text-dim);">₹${cart.price} each</small>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="btn btn-icon" style="width: 25px; height: 25px;" onclick="updateQty(-1)">-</button>
+                    <span id="q-val">1</span>
+                    <button class="btn btn-icon" style="width: 25px; height: 25px;" onclick="updateQty(1)">+</button>
+                </div>
+            </div>
+        `;
+        updateTotal();
+        summary.style.display = 'block';
+    }
+
+    function updateQty(v) {
+        cart.qty = Math.max(1, cart.qty + v);
+        document.getElementById('q-val').innerText = cart.qty;
+        updateTotal();
+    }
+
+    function updateTotal() {
+        document.getElementById('grand-total').innerText = `₹${cart.price * cart.qty}`;
+    }
+
+    function openPayment() {
+        const overlay = document.getElementById('overlay');
+        const modal = document.getElementById('modal');
+        overlay.style.display = 'flex';
+        modal.innerHTML = `
+            <h2 style="margin-bottom: 15px;">Checkout</h2>
+            <p style="color: var(--text-dim); margin-bottom: 30px;">Amount to pay: ₹${cart.price * cart.qty}</p>
+            <div style="display: grid; gap: 12px;">
+                <button class="btn btn-primary" onclick="dispense()">UPI / QR Code</button>
+                <button class="btn" style="background: rgba(255,255,255,0.05); color: white;" onclick="dispense()">Cash / Coins</button>
+            </div>
+            <p style="margin-top: 20px; cursor: pointer; color: var(--primary);" onclick="closeOverlay()">Cancel</p>
+        `;
+    }
+
+    function dispense() {
+        const modal = document.getElementById('modal');
+        modal.innerHTML = `
+            <h2>Processing...</h2>
+            <div class="loader-track"><div class="loader-fill" id="p-bar"></div></div>
+            <p style="color: var(--text-dim);">Dispensing ${cart.qty}x ${cart.name}</p>
+        `;
+        let w = 0;
+        let int = setInterval(() => {
+            w += 2;
+            document.getElementById('p-bar').style.width = w + '%';
+            if(w >= 100) {
+                clearInterval(int);
+                modal.innerHTML = `
+                    <div style="font-size: 60px; margin-bottom: 20px;">📦</div>
+                    <h2>Collected!</h2>
+                    <p style="color: var(--text-dim); margin-bottom: 20px;">Please pick your drink from the tray.</p>
+                    <button class="btn btn-primary" onclick="location.reload()">Done</button>
+                `;
+            }
+        }, 50);
+    }
+
+    function closeOverlay() { document.getElementById('overlay').style.display = 'none'; }
+
+    renderProducts();
+</script>
+
+</body>
+</html>
